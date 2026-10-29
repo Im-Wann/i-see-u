@@ -188,10 +188,29 @@ i-see-u/
 
 ---
 
-## 5. Tahapan Eksekusi Tim (Timeline & Sinkronisasi)
+## 6. Aturan Git Workflow: Branching, Commit, & Pull Request
 
-| Hari / Tahap | Iwan (Paket 1 - Core & Lead) | Zaza (Paket 2 - Streamer) | Ita (Paket 3 - Tracker) | Yeskiel (Paket 4 - Rules) | Temi (Paket 5 - Reporter) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Hari 1: Setup & Mocking** | Setup repo, kunci `mock_data.py`, buat skeleton CLI `main.py`. | Tulis `stream_frames` pakai video sample lokal. | Load model YOLO & tes tracking pada video pendek. | Tulis logic rules menggunakan list dummy dari `mock_data.py`. | Buat format CSV writer, snapshot saver & tqdm menggunakan event tiruan dari `mock_data.py`. |
-| **Hari 2: Verifikasi Unit & PR** | Review PR anggota tim, validasi kontrak antarmuka di branch mereka. | Pastikan frame skip & motion gating akurat (hitung % frame diskip). | Pastikan kelas `person`, `motorcycle`, dll. terdeteksi stabil tanpa drop ID. | Pastikan kalkulasi jarak spasial memicu alert saat objek menjauh. | Pastikan CSV terisi real-time dan gambar `.jpg` tersimpan dengan kotak merah. |
-| **Hari 3: Integrasi & Benchmark** | Gabungkan semua modul ke `main.py`, tambahkan error boundary, tes run video penuh. | Dampingi pengetesan performa streaming & memory leak. | Dampingi pengetesan akurasi deteksi & optimasi batch. | Dampingi validasi false alarm rule & batas waktu. | Dampingi validasi konsistensi log CSV & path snapshot. |
+Untuk menjaga stabilitas repositori dan mencegah konflik kode (*merge conflict*), seluruh anggota tim wajib mematuhi aturan Git berikut:
+
+### A. Penamaan Branch Wajib (Branch Naming Convention)
+Setiap anggota tim dilarang bekerja atau melakukan commit langsung di branch `main`. Buat branch baru dari `main` sesuai dengan modul tugas masing-masing:
+- **Iwan (Paket 1):** `feature/paket-1-core`
+- **Zaza (Paket 2):** `feature/paket-2-streamer`
+- **Ita (Paket 3):** `feature/paket-3-tracker`
+- **Yeskiel (Paket 4):** `feature/paket-4-rules`
+- **Temi (Paket 5):** `feature/paket-5-reporter`
+
+### B. Format Pesan Commit (Conventional Commits)
+Gunakan awalan konvensional yang jelas pada setiap pesan commit agar riwayat perubahan mudah dibaca:
+- `feat: [deskripsi]` — penambahan fungsi atau modul baru (contoh: `feat: implement cheap motion gating in streamer.py`)
+- `fix: [deskripsi]` — perbaikan bug atau error
+- `docs: [deskripsi]` — pembaruan dokumentasi
+- `test: [deskripsi]` — penambahan atau penyesuaian skrip uji
+
+### C. Alur Pull Request (PR) & Code Review
+1. Setelah kode di branch masing-masing selesai, lakukan *push* ke remote repository:
+   ```bash
+   git push origin feature/paket-X-nama-anda
+   ```
+2. Buka halaman GitHub repository **i-see-u** dan buat **Pull Request (PR)** dari branch fitur anda ke branch `main`.
+3. **Iwan (Tech Lead)** akan meninjau (*review*) dan melakukan *merge* setelah kode dipastikan memenuhi kontrak antarmuka. Dilarang melakukan *force push* atau *merge* mandiri ke `main`.
