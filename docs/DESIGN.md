@@ -55,6 +55,15 @@ Dokumen ini mendetailkan prinsip arsitektur tingkat rendah, mitigasi performa, p
   - Penulisan berkas CSV menggunakan `file.flush()` seketika pada tiap baris.
   - Modul `main.py` membungkus loop pemindaian dengan blok `try...except KeyboardInterrupt...finally` untuk memastikan sumber daya kamera dilepas dan laporan parsial tercetak rapi.
 
+### E. Interactive HTML Dashboard Viewer (`report.html`)
+- **Tantangan:** Pengguna membutuhkan cara visual yang mudah untuk meninjau kejadian tanpa harus mencari manual di file video 24 jam.
+- **Solusi Desain:**
+  - Di akhir pemindaian, modul `reporter.py` merender file **`report.html`** tunggal berbasis **Tailwind CSS via CDN**.
+  - **Arsitektur Dashboard:**
+    - Kolom / Panel Utama: Pemutar video HTML5 lokal (`<video controls>`).
+    - Kolom / Panel Samping: Tabel daftar insiden interaktif (timestamp, jenis kejahatan, thumbnail snapshot).
+    - Interaksi Klik & Play (JS Client-side): Saat baris tabel atau stempel waktu diklik, JavaScript mengeksekusi `video.currentTime = seconds` dan otomatis memanggil `video.play()`, membuat browser langsung melompat ke detik kejadian tanpa server backend.
+
 ---
 
 ## 3. Format Data Kontrak Antar Modul

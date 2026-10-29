@@ -21,7 +21,7 @@ Sistem command-line interface (CLI) berbasis computer vision untuk memindai berk
   1. *Theft / Removal of Property:* Pemindahan helm, motor, sepeda, atau tas dari posisi awal oleh orang yang menjauh.
   2. *Suspicious Loitering:* Seseorang berdiam/berputar-putar di area pantauan melampaui batas waktu wajar.
   3. *Zone Intrusion:* Seseorang memasuki batas polygon terlarang pada jam operasional tertentu.
-- **Live Output Streaming:** Pencatatan langsung per insiden ke `incidents.csv`, terminal, dan penyimpanan snapshot bukti `.jpg`.
+- **Live Output Streaming & Interactive HTML Report:** Pencatatan langsung per insiden ke `incidents.csv`, terminal, penyimpanan snapshot `.jpg`, serta pembuatan berkas **`report.html` (Dashboard Interaktif berbasis Tailwind CSS)** yang memungkinkan pengguna mengeklik timestamp untuk langsung melompat (*seek & play*) ke detik kejadian pada pemutar video lokal.
 - **Live Progress Reporting:** Indikator visual progres (`tqdm`) dengan persentase, FPS pemrosesan, dan estimasi selesai (ETA).
 
 ### Out-of-Scope
