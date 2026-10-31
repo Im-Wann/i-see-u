@@ -30,7 +30,7 @@ def main():
     parser.add_argument("--input-dir", type=str, help="Path ke folder berisi segmen video CCTV")
     parser.add_argument("--model", type=str, default="yolov8n.pt", help="Path bobot model YOLO")
     parser.add_argument("--output", type=str, default="./hasil_scan", help="Direktori penyimpanan hasil output dan snapshot")
-    parser.add_argument("--conf", type=float, default=0.35, help="Confidence threshold deteksi YOLO")
+    parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold deteksi YOLO")
     parser.add_argument("--fps", type=int, default=3, help="Target sampling FPS")
     
     args = parser.parse_args()
@@ -49,12 +49,17 @@ def main():
     print(f"[INFO] Target: {len(video_files)} berkas video")
     print(f"[INFO] Output direktori: {args.output}")
 
-    # Hitung total frames keseluruhan untuk progress bar
+    # Hitung total frames yang akan diproses (setelah downsampling FPS) untuk progress bar
     total_frames = 0
     for vf in video_files:
         cap = cv2.VideoCapture(vf)
         if cap.isOpened():
-            total_frames += int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 0
+            fc = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 0
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            if fps <= 0 or fps != fps:
+                fps = 25.0
+            step = max(1, round(fps / args.fps))
+            total_frames += fc // step
             cap.release()
 
     try:

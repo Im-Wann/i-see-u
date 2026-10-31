@@ -314,6 +314,45 @@ class CrimeRuleEvaluator:
                             "bbox_highlight": item["bbox"]
                         })
 
+        # Bagian B: Deteksi pencurian kendaraan itu sendiri (motorcycle/bicycle) yang dipindahkan dari posisi parkir
+        for motor in motorcycles:
+            m_id = motor["track_id"]
+            m_centroid = motor["centroid"]
+            m_state = self.motor_state.get(m_id)
+            if not m_state:
+                continue
+
+            parked_anchor = m_state.get("parked_anchor")
+            static_frames = m_state.get("static_frames", 0)
+
+            # Jika kendaraan sebelumnya sudah terparkir statis (>= 3 frame sampling)
+            # lalu berpindah posisi melebihi ambang batas d_theft
+            if parked_anchor and static_frames >= 3:
+                displacement = self._calculate_distance(m_centroid, parked_anchor)
+                if displacement >= d_theft:
+                    alert_key = ("THEFT_REMOVAL", m_id)
+                    last_alert = self.alert_history.get(alert_key)
+                    if last_alert is None or (current_time - last_alert) >= cooldown:
+                        self.alert_history[alert_key] = current_time
+
+                        # Cari person terdekat jika ada di sekitar kendaraan
+                        related_person_id = -1
+                        min_p_dist = float("inf")
+                        for p in persons:
+                            p_dist = self._calculate_distance(p["centroid"], m_centroid)
+                            if p_dist < min_p_dist:
+                                min_p_dist = p_dist
+                                related_person_id = p["track_id"]
+
+                        events.append({
+                            "timestamp": timestamp_str,
+                            "event_type": "THEFT_REMOVAL",
+                            "target_object": motor["class_name"],
+                            "target_id": m_id,
+                            "person_id": related_person_id,
+                            "bbox_highlight": motor["bbox"]
+                        })
+
         return events
 
     # --- ATURAN 3: LOITERING ---
@@ -460,7 +499,8 @@ class CrimeRuleEvaluator:
 
     def _update_motor_status(self, motorcycles: List[dict], current_time: float):
         """
-        Memperbarui status pergerakan motor untuk menentukan apakah motor sedang statis/diam.
+        Memperbarui status pergerakan motor untuk menentukan apakah motor sedang statis/diam
+        serta menyimpan anchor posisi parkirnya.
         """
         tol = self.config.get("motor_static_tolerance", 15.0)
 
@@ -471,6 +511,8 @@ class CrimeRuleEvaluator:
             if m_id not in self.motor_state:
                 self.motor_state[m_id] = {
                     "last_centroid": curr_centroid,
+                    "parked_anchor": curr_centroid,
+                    "static_frames": 1,
                     "is_static": True,
                     "last_time": current_time
                 }
@@ -480,8 +522,21 @@ class CrimeRuleEvaluator:
                 displacement = self._calculate_distance(curr_centroid, prev_centroid)
                 is_static = displacement <= tol
 
+                parked_anchor = prev_info.get("parked_anchor", curr_centroid)
+                static_frames = prev_info.get("static_frames", 1)
+
+                dist_from_anchor = self._calculate_distance(curr_centroid, parked_anchor)
+                if dist_from_anchor <= tol:
+                    static_frames += 1
+                elif is_static:
+                    # Jika motor berpindah lalu diam di posisi parkir baru
+                    parked_anchor = curr_centroid
+                    static_frames = 1
+
                 self.motor_state[m_id] = {
                     "last_centroid": curr_centroid,
+                    "parked_anchor": parked_anchor,
+                    "static_frames": static_frames,
                     "is_static": is_static,
                     "last_time": current_time
                 }
